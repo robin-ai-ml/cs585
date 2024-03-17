@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import time
 import pandas as pd
 import numpy as np
 
@@ -144,6 +145,9 @@ def remove_numbers(text):
     return re.sub(r'\d+', '', text)
 
 
+def remove_single_character(text):
+    return ' '.join([w for w in text.split() if len(w) > 1 or w == 'i'] )
+
 """
     Split the input DataFrame into training and testing sets based on the specified train_size and test_size ratios.
 
@@ -155,6 +159,15 @@ def remove_numbers(text):
     Returns:
     tuple: A tuple containing the training DataFrame and testing DataFrame.
 """
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+    
+
 def train_test_split(df, train_size=0.8, test_size=0.2):
     # Ensure reproducibility
     np.random.seed(42)
@@ -170,12 +183,9 @@ def train_test_split(df, train_size=0.8, test_size=0.2):
     return train_df, test_df
 
 
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
+def extract_keywords_by_tf_idf():
+    pass
+
 
 def main():
     # python CS585_P02_AXXXXXXXX.py TRAIN_SIZE
@@ -193,44 +203,53 @@ def main():
             print("Warning: using default values TRAIN_SIZE=80.")
             train_size = 0.8
 
-    dataset_file = "fake_or_real_news.csv"
+    dataset_file = "Reviews.csv"
     
     #FILdENAME is the input CSV file name (graph G data)
     cur_dir = os.path.dirname(os.path.abspath(__file__))
     csv_file_path = cur_dir + '/' + dataset_file
-    df = pd.read_csv(csv_file_path, header=0, names=['id', 'title', 'text', 'label'])
+    df = pd.read_csv(csv_file_path, usecols=['Id', 'Score', 'Summary', 'Text'], header=0)
 
     print(f'number of samples: {len(df)}')
 
-    unique_titles = df['title'].unique()
-    print(f'number of unique titles: {len(unique_titles)}')
+    unique_titles = df['Text'].unique()
+    print(f'number of unique Text: {len(unique_titles)}')
 
-    unique_texts = df['text'].unique()
-    print(f'number of unique texts: {len(unique_texts)}')
-
-    unique_labels = df['label'].unique()
+    unique_labels = df['Score'].unique()
     print(f'unique_labels: {unique_labels}')
-
-    df =df.drop(['id', 'title'], axis = 1)
 
     #------------------------clean up the dataset --------------------------------------
     #remove the duplicate rows(texts) in dataset
     print("remove duplicates in dataset")
-    df = df.drop_duplicates(subset=['text', 'label'], keep='first')
+    df = df.drop_duplicates(subset=['Text'], keep='first')
 
-    unique_texts = df['text']
+    unique_texts = df['Text']
     print(f'number of unique texts: {len(unique_texts)}')
 
-    df['text'] = df['text'].apply(lambda x: lowercase_text(x))
-    df['text'] = df['text'].apply(lambda x: remove_html_tags(x))
-    df['text'] = df['text'].apply(lambda x: expand_contractions(x, contractions_map))
-    df['text'] = df['text'].apply(lambda x: remove_punctuation(x))
-    df['text'] = df['text'].apply(lambda x: remove_stopwords(x))
-    df['text'] = df['text'].apply(lambda x: stem_text(x))
-    df['text'] = df['text'].apply(lambda x: lemmatize_text(x))
-    df['text'] = df['text'].apply(lambda x: remove_numbers(x))
+    print(df.head())
+
+    start_time = time.time()
+    df['Text'] = df['Text'].apply(lambda x: lowercase_text(x))
+    df['Text'] = df['Text'].apply(lambda x: remove_html_tags(x))
+    df['Text'] = df['Text'].apply(lambda x: expand_contractions(x, contractions_map))
+    df['Text'] = df['Text'].apply(lambda x: remove_punctuation(x))
+    df['Text'] = df['Text'].apply(lambda x: remove_stopwords(x))
+    df['Text'] = df['Text'].apply(lambda x: stem_text(x))
+    df['Text'] = df['Text'].apply(lambda x: lemmatize_text(x))
+    df['Text'] = df['Text'].apply(lambda x: remove_numbers(x))
+    df['Text'] = df['Text'].apply(lambda x: remove_single_character(x))
+
+    end_time = time.time()
+    print("---  clean up data in seconds --- %s" % (end_time - start_time ))
 
     print(df.head())
+
+    #build the vocabulary from the dataset
+    vocab = set()
+    for text in df['Text']:
+        vocab.update(text.split())
+
+    print(f'Vocabulary size: {len(vocab)}')
 
     # Split the dataset into training and testing sets
     train_df, test_df = train_test_split(df, train_size=train_size, test_size=1-train_size)
