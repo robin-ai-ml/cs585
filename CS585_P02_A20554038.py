@@ -229,6 +229,7 @@ def main():
     print(df.head())
 
     start_time = time.time()
+    
     df['Text'] = df['Text'].apply(lambda x: lowercase_text(x))
     df['Text'] = df['Text'].apply(lambda x: remove_html_tags(x))
     df['Text'] = df['Text'].apply(lambda x: expand_contractions(x, contractions_map))
@@ -238,18 +239,16 @@ def main():
     df['Text'] = df['Text'].apply(lambda x: lemmatize_text(x))
     df['Text'] = df['Text'].apply(lambda x: remove_numbers(x))
     df['Text'] = df['Text'].apply(lambda x: remove_single_character(x))
-
+    
+    #convert the Score 1 ～ 5 to good and bad values
+    df['Label'] = df['Score'].apply(lambda x: 'good' if x > 3 else 'bad')
     end_time = time.time()
     print("---  clean up data in seconds --- %s" % (end_time - start_time ))
+    
 
     print(df.head())
 
-    #build the vocabulary from the dataset
-    vocab = set()
-    for text in df['Text']:
-        vocab.update(text.split())
-
-    print(f'Vocabulary size: {len(vocab)}')
+    #---------------------------Bayes  Classifier network learning ---------------------------------
 
     # Split the dataset into training and testing sets
     train_df, test_df = train_test_split(df, train_size=train_size, test_size=1-train_size)
@@ -257,11 +256,61 @@ def main():
     train_df.to_csv('train.csv', index=False)
     test_df.to_csv('test.csv', index=False)
 
-    # Create a dictionary for state coordinates for quick access
-    # dataset = {row['news']: (row['label']) for index, row in csv_df.iterrows()}
-    # print(dataset['news'])
+    #P(Label=good) and P(Label=bad
+    count_label_good = len(train_df[train_df['Label'] == 'good'])
+    count_label_bad = len(train_df[train_df['Label'] == 'bad'])
+    prob_label_good =  count_label_good / len(train_df)
+    prob_label_bad =  count_label_bad / len(train_df)
 
 
+    print(f'P(Label=good): {prob_label_good}')
+    print(f'P(Label=bad): {prob_label_bad}')
+
+
+    #build the vocabulary from the dataset
+    vocab_in_training = set()
+    for text in train_df['Text']:
+        vocab_in_training.update(text.split())
+
+    print(f'Vocabulary size in training dataset: {len(vocab_in_training)}')
+
+    
+
+    #Learn every word over the vocabulary probability with label = good and label = bad 
+    smoothing_alpha = 1 #avoiding zero probability
+    prob_word_given_label_good_dict = {}
+    prob_word_given_label_bad_dict = {}
+    count_word = 100
+
+    print("\n###### Bayes classifier network training ......\n")
+    for word in vocab_in_training:
+        prob_word_given_label_good = len(train_df[(train_df['Label'] == 'good') & (train_df['Text'].str.contains(word))]) + smoothing_alpha\
+                                      / (count_label_good  + smoothing_alpha * count_label_good)
+        
+        prob_word_given_label_bad = len(train_df[(train_df['Label'] == 'bad') & (train_df['Text'].str.contains(word))]) + smoothing_alpha\
+                                      / (count_label_bad  + smoothing_alpha * count_label_bad)
+
+        prob_word_given_label_good_dict[word] = prob_word_given_label_good
+        prob_word_given_label_bad_dict[word] = prob_word_given_label_bad
+        if count_word > 0:
+            count_word -= 1
+            print(f'P({word}|Label=good): {prob_word_given_label_good}')
+            print(f'P({word}|Label=bad): {prob_word_given_label_bad}')
+
+
+    #---------------------------Bayes  Classifier network prediction  ---------------------------------
+    print("\n###### Bayes classifier network test ......\n")
+    for review, label in test_df['Text', 'Label'].iterrows():
+        predict_prob_label_good = prob_label_good
+        predict_prob_label_bad = prob_label_bad
+        for word in review.split():
+            predict_prob_label_good *=  prob_word_given_label_good_dict.get(word, 1.0)
+            predict_prob_label_bad *=  prob_word_given_label_bad_dict.get(word, 1.0)
+        
+        if predict_prob_label_good > predict_prob_label_bad:
+            print(f'Predicted Label: good, Actual Label: {label}')
+        else:
+            print(f'Predicted Label: bad, Actual Label: {label}')
 
 if __name__ == "__main__":
     main()
