@@ -7,7 +7,8 @@ import pandas as pd
 import numpy as np
 from CS585_P02_A20499169_bayes_classifier import test, train
 
-from CS585_P02_A20499169_dataset import Dataset
+# from CS585_P02_A20499169_dataset import Dataset
+from CS585_P02_A20499169_docset import Docset
 
 
 def lowercase_text(text):
@@ -383,7 +384,8 @@ def main():
     test_df.to_csv("test.csv", index=False)
 
     C = ["good", "bad"]
-    train_set = Dataset(train_df)
+    # train_set = Dataset(train_df)
+    train_set = Docset(train_df)
     logprior, loglikelihood, V = train(train_set, C)
 
     # P(Label=good) and P(Label=bad

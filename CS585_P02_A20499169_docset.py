@@ -2,24 +2,41 @@ import pandas as pd
 import os
 
 
-class Dataset:
+class Doc:
+    def __init__(self, row):
+        self.label = row["Label"]
+        self.bag = {}
+        for w in row["Text"].split():
+            if w not in self.bag:
+                self.bag[w] = 0
+            self.bag[w] += 1
+
+    def words(self):
+        return self.bag.keys()
+
+
+class Docset:
     def __init__(self, df) -> None:
-        self.df = df
+        self.docs = []
+        for _, row in df[["Text", "Label"]].iterrows():
+            self.docs.append(Doc(row))
 
     def vocabulary(self):
         V = set()
-        for text in self.df["Text"]:
-            V.update(text.split())
+        for doc in self.docs:
+            V.update(doc.words())
         return V
 
     def total_doc_num(self) -> int:
-        return len(self.df)
+        return len(self.docs)
 
     def c_doc_num(self, c) -> int:
-        return len(self.df[self.df["Label"] == c])
+        return sum(map(lambda x: x.label == c, self.docs))
+        # return len(self.df[self.df["Label"] == c])
 
     def wc_count(self, w, c):
-        return len(self.df[(self.df["Label"] == c) & (self.df["Text"].str.contains(w))])
+        return sum(map(lambda x: x.label == c and w in x.bag, self.docs))
+        # return len(self.df[(self.df["Label"] == c) & (self.df["Text"].str.contains(w))])
         # s = 0
         # for _, row in self.df[["Text", "Label"]].iterrows():
         #     if row["Label"] == c:
@@ -29,7 +46,8 @@ class Dataset:
         # return s
 
     def c_count(self, c):
-        return len(self.df[self.df["Label"] == c])
+        # return len(self.df[self.df["Label"] == c])
+        return sum(map(lambda x: x.label == c, self.docs))
         # s = 0
         # for _, row in self.df[["Text", "Label"]].iterrows():
         #     if row["Label"] == c:
@@ -45,7 +63,7 @@ if __name__ == "__main__":
     df = pd.read_csv(csv_file_path, header=0)
     print(df.head())
 
-    D = Dataset(df)
+    D = Docset(df)
     print("total", D.total_doc_num())
     print("good", D.c_doc_num("good"))
     print("bad", D.c_doc_num("bad"))
@@ -54,6 +72,3 @@ if __name__ == "__main__":
 
     V = D.vocabulary()
     print("V len", len(V))
-
-    for w in V:
-        print(w)
