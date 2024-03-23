@@ -2,13 +2,14 @@ import math
 import sys
 
 from CS585_P02_A20499169_docset import Docset
+from CS585_P02_A20554038_util import process_bar
 
 
 # Naive Bayes: Training/Testing
 # lecture 10, CS585_Lecture_February12th.pdf
 
 
-def train(D: Docset, C: list[str], process_bar):
+def train(D: Docset, C: list[str]):
     logprior = {}
     loglikelihood = {}
     V = D.vocabulary()
@@ -37,7 +38,7 @@ def train(D: Docset, C: list[str], process_bar):
     return logprior, loglikelihood, V
 
 
-def test(testdoc: dict[str, int], logprior, loglikelihood, C, V):
+def predict(testdoc: dict[str, int], logprior, loglikelihood, C, V):
     sum = {}
     max_sum = -9999
     max_c = None

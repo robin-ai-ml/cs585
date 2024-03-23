@@ -36,10 +36,11 @@ class Docset:
 
     _total_doc_count: int = 0
 
-    def __init__(self, docs: list[tuple[dict[str, int], str]]) -> None:
-        self.docs = docs
-        # for _, row in df[["Text", "Label"]].iterrows():
-        #     self.docs.append(Doc(row))
+    # def __init__(self, docs: list[tuple[dict[str, int], str]]) -> None:
+    # def __init__(self) -> None:
+    # self.docs = docs
+    # for _, row in df[["Text", "Label"]].iterrows():
+    #     self.docs.append(Doc(row))
 
     def add(self, bag: dict[str, int], label: str):
         self._total_doc_count += 1
