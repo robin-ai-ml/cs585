@@ -1,5 +1,4 @@
 import math
-import sys
 
 from CS585_P02_A20499169_docset import Docset
 from CS585_P02_A20554038_util import process_bar
@@ -28,12 +27,6 @@ def train(D: Docset, C: list[str]):
             )
             i += 1
             process_bar(i, total_words)
-            # progress = (i / total_words) * 100
-            # sys.stdout.write("\r")
-            # sys.stdout.write(
-            #     "[{:<50}] {:.2f}%".format("=" * int(progress // 2), progress)
-            # )
-            # sys.stdout.flush()
 
     return logprior, loglikelihood, V
 
