@@ -1,12 +1,14 @@
 import math
 import sys
 
+from CS585_P02_A20499169_docset import Docset
+
 
 # Naive Bayes: Training/Testing
 # lecture 10, CS585_Lecture_February12th.pdf
 
 
-def train(D, C):
+def train(D: Docset, C: list[str], process_bar):
     logprior = {}
     loglikelihood = {}
     V = D.vocabulary()
@@ -14,25 +16,28 @@ def train(D, C):
     total_words = V_len * len(C)
     i = 0
     for c in C:
-        N_doc = D.total_doc_num()
-        N_c = D.c_doc_num(c)
+        N_doc = D.total_doc_count()
+        N_c = D.class_doc_count(c)
         logprior[c] = math.log(N_c / N_doc)
-        c_count = D.c_count(c)
+        c_count = D.class_token_count(c)
 
         for w in V:
-            loglikelihood[(w, c)] = math.log((D.wc_count(w, c) + 1) / (c_count + V_len))
-            i += 1
-            progress = (i / total_words) * 100
-            sys.stdout.write("\r")
-            sys.stdout.write(
-                "[{:<50}] {:.2f}%".format("=" * int(progress // 2), progress)
+            loglikelihood[(w, c)] = math.log(
+                (D.word_class_token_count(w, c) + 1) / (c_count + V_len)
             )
-            sys.stdout.flush()
+            i += 1
+            process_bar(i, total_words)
+            # progress = (i / total_words) * 100
+            # sys.stdout.write("\r")
+            # sys.stdout.write(
+            #     "[{:<50}] {:.2f}%".format("=" * int(progress // 2), progress)
+            # )
+            # sys.stdout.flush()
 
     return logprior, loglikelihood, V
 
 
-def test(testdoc, logprior, loglikelihood, C, V):
+def test(testdoc: dict[str, int], logprior, loglikelihood, C, V):
     sum = {}
     max_sum = -9999
     max_c = None
