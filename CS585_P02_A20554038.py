@@ -85,7 +85,7 @@ def main():
 
     print("Load and process input data set ...")
     df = load_csv("Reviews.csv")
-    # df = df.iloc[:10000]
+    # df = df.iloc[:20000]
     # print(df.head())
 
     df.drop_duplicates(subset=["Text"], inplace=True)
@@ -114,6 +114,7 @@ def main():
     true_negatives = 0
     false_negatives = 0
 
+    # err_items = []
     for i, row in test_df.iterrows():
         bag, actual = parse_row(row)
         predicted, _ = predict(bag, logprior, loglikelihood, C, V)
@@ -129,6 +130,16 @@ def main():
                 true_negatives += 1
             else:
                 false_negatives += 1
+
+        # if predicted != actual:
+        #     err_items.append((row["Text"], row["Score"], bag, predicted))
+
+    # for _text, _score, _bag, _predicted in err_items[:10]:
+    #     print(_text)
+    #     print(_score)
+    #     print(_bag)
+    #     print(_predicted)
+    #     print("-------")
 
     print("\n")
     print("Test results / metrics:")

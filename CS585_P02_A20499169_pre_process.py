@@ -34,12 +34,20 @@ def parse_phrase(phrase: str):
         w = stem(w)
         w = lemmatize(w)
 
+        # skip numbers
         if w.isnumeric():
             continue
+
+        # skip empty and 1 char words
         if len(w) <= 1:
             continue
+
+        # skip stop words
         if w in STOPWORD_DICT:
             continue
+
+        # Add not_ prefix to every word between
+        # negation and following punctuation
         if negations:
             w = "not_" + w
         if w == "not":

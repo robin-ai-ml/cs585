@@ -19,11 +19,14 @@ def train(D: Docset, C: list[str]):
         N_doc = D.total_doc_count()
         N_c = D.class_doc_count(c)
         logprior[c] = math.log(N_c / N_doc)
-        c_count = D.class_token_count(c)
+        class_count = D.class_token_count(c)
+        # class_count = D.class_doc_count(c)
 
         for w in V:
+            word_class_count = D.word_class_token_count(w, c)
+            # word_class_count = D.word_class_doc_count(w, c)
             loglikelihood[(w, c)] = math.log(
-                (D.word_class_token_count(w, c) + 1) / (c_count + V_len)
+                (word_class_count + 1) / (class_count + V_len)
             )
             i += 1
             process_bar(i, total_words)

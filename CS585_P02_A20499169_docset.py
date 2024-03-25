@@ -31,17 +31,21 @@ class Docset:
     def total_doc_count(self) -> int:
         return self._total_doc_count
 
+    # count of documents with class `c`
     def class_doc_count(self, c: str) -> int:
         return self._class_doc_count[c]
 
+    # count of tokens in documents with class `c`
     def class_token_count(self, c: str):
         return self._class_token_count[c]
 
+    # count of documents with both word `w` and class `c`
     def word_class_doc_count(self, w: str, c: str):
         if (w, c) in self._word_class_doc_count:
             return self._word_class_doc_count[(w, c)]
         return 0
 
+    # count of word `w` in documents with class `c`
     def word_class_token_count(self, w: str, c: str):
         if (w, c) in self._word_class_token_count:
             return self._word_class_token_count[(w, c)]
