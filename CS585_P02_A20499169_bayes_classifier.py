@@ -19,12 +19,19 @@ def train(D: Docset, C: list[str]):
         N_doc = D.total_doc_count()
         N_c = D.class_doc_count(c)
         logprior[c] = math.log(N_c / N_doc)
+        # multinominal Naive Bayes
         class_count = D.class_token_count(c)
+
+        # binary Naive Bayes
         # class_count = D.class_doc_count(c)
 
         for w in V:
+            # multinominal Naive Bayes
             word_class_count = D.word_class_token_count(w, c)
+
+            # binary Naive Bayes
             # word_class_count = D.word_class_doc_count(w, c)
+
             loglikelihood[(w, c)] = math.log(
                 (word_class_count + 1) / (class_count + V_len)
             )

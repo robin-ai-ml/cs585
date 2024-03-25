@@ -1,6 +1,8 @@
 import sys
 import re
 
+# from CS585_P02_A20499169_stemmer import PorterStemmer
+
 LEMMA_DICT = {
     "am": "be",
     "are": "be",
@@ -108,9 +110,11 @@ def remove_html_tags(text):
 
 
 def stem(word):
-    # return stemer.stem(word)
-    # Implement the Porter Stemmer algorithm here
-    # This is a simplified example
+    # Porter Stemmer
+    # stemmer = PorterStemmer()
+    # return stemmer.stem(word)
+
+    # simplified stemmer
     if word.endswith("ing"):
         return word[:-3]
     elif word.endswith("ed"):

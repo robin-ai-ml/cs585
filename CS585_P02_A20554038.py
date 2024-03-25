@@ -85,7 +85,7 @@ def main():
 
     print("Load and process input data set ...")
     df = load_csv("Reviews.csv")
-    # df = df.iloc[:20000]
+    df = df.iloc[:30000]
     # print(df.head())
 
     df.drop_duplicates(subset=["Text"], inplace=True)
