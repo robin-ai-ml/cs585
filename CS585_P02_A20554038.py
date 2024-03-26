@@ -56,8 +56,24 @@ def classify_sentence(logprior, loglikelihood, C, V):
             print("invalid sentence, the length of sentence must be greater than 2")
             continue
         bag = pre_process(sentence)
-        # print("bag", bag)
+        # print(bag)
         predicted, log_probs = predict(bag, logprior, loglikelihood, C, V)
+
+        # debug Naive Bayes Classifier
+        # for c in logprior:
+        #     print(c, math.exp(logprior[c]))
+        # for w in bag:
+        #     if w in V:
+        #         print(
+        #             w,
+        #             "good",
+        #             math.exp(loglikelihood[(w, "good")]),
+        #             "bad",
+        #             math.exp(loglikelihood[(w, "bad")]),
+        #             bag[w],
+        #         )
+        #     else:
+        #         print(w, "-", bag[w])
 
         print("\n")
         print(f"was classified as {predicted}")
@@ -70,6 +86,25 @@ def classify_sentence(logprior, loglikelihood, C, V):
         another = input("Do you want to enter another sentence [Y/N]? ")
         if another.lower() != "y":
             break
+
+
+def bal(df: pd.DataFrame, num: int) -> pd.DataFrame:
+    goods = 0
+    bads = 0
+    rows = []
+    for i, row in df.iterrows():
+        score = int(row["Score"])
+        # label = "good" if score > 3 else "bad"
+        if score > 3:
+            if goods < num:
+                rows.append(row)
+                goods += 1
+        else:
+            if bads < num:
+                rows.append(row)
+                bads += 1
+
+    return pd.DataFrame(rows)
 
 
 def main():
@@ -85,20 +120,23 @@ def main():
 
     print("Load and process input data set ...")
     df = load_csv("Reviews.csv")
-    df = df.iloc[:30000]
+    # df = df.iloc[:30000]
     # print(df.head())
 
     df.drop_duplicates(subset=["Text"], inplace=True)
     df.reset_index(drop=True, inplace=True)
 
     train_df, test_df = train_test_split(df, train_size=train_size, test_size=0.2)
+    # train_df = train_df.iloc[:10000]
+    # train_df = bal(train_df, 10000)
+    # train_df.reset_index(drop=True, inplace=True)
 
-    train_size = len(train_df)
+    train_df_size = len(train_df)
     train_set = Docset()
     for i, row in train_df.iterrows():
         bag, label = parse_row(row)
         train_set.add(bag, label)
-        process_bar(i, train_size - 1)
+        process_bar(i, train_df_size - 1)
 
     print("\n")
     print("Training classifier ...")
